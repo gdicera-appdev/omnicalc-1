@@ -37,16 +37,21 @@ class ApplicationController < ActionController::Base
 
   def calculate_payment
     @apr = params.fetch("apr").to_f
-    @apr = @apr / 100 / 12
+    @r = @apr / 100 / 12
+
+    @years = params.fetch("years").to_i
+    @period = @years * 12
+
+    @principal = params.fetch("principal").to_f
+
+    @denominator = 1 - (((1 + @r)) **(-1 * @period))
+
+    @payment = (@r * @principal) / @denominator
+
     @apr = @apr.to_s(:percentage, { :precision => 4 } )
-    @apr = @apr.to_i
-    @years = params.fetch("years").to_f
-    @years = @years * 12
-    @years = @years.to_i
-    @principal = params.fetch("principal").to_f(:currency)
-    @numerator = (@apr * @principal).to_i
-    @denominator = (1-((1+@apr) ** (-@years))).to_i
-    @payment = (@numerator/@denominator).to_f(:currency)
+    @principal = @principal.to_s(:currency, { :precision => 2 })
+    @payment = @payment.to_s(:currency, { :precision => 2 })
+
     render({ :template => "calculation_templates/payment_results.html.erb" })
   end
 
